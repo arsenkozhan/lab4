@@ -1,0 +1,16 @@
+aws elbv2 create-load-balancer --name Lab4 --type application --scheme internet-facing --subnets subnet-72253608 subnet-95f08bd9
+
+aws ec2 create-security-group --group-name Lab4 --description lab4
+
+aws ec2 authorize-security-group-ingress --group-id sg-0d7009747a454ef07 --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+aws elbv2 set-security-groups --load-balancer-arn arn:aws:elasticloadbalancing:us-east-2:160698951904:loadbalancer/app/Lab4/a8fc9b82772bb8ed --security-groups sg-0d7009747a454ef07
+
+aws ec2 run-instances --image-id ami-0794ea4d6593a4f5f --count 1 --instance-type t2.micro --key-name ArsenKey --associate-public-ip-address --security-group-ids sg-0d7009747a454ef07 --user-data file://UserData1.sh
+aws ec2 run-instances --image-id ami-0794ea4d6593a4f5f --count 1 --instance-type t2.micro --key-name ArsenKey --associate-public-ip-address --security-group-ids sg-0d7009747a454ef07 --user-data file://UserData2.sh
+
+aws elbv2 create-target-group --name Lab4 --target-type instance --protocol HTTP --port 80 --vpc-id vpc-30f04d5b
+
+ aws elbv2 register-targets --target-group-arn arn:aws:elasticloadbalancing:us-east-2:160698951904:targetgroup/Lab4/d4df91995a82cad3 --targets Id=i-00f067b44a14a5e86 Id=i-0b80166ae81c1605f
+
+aws elbv2 create-listener --load-balancer-arn arn:aws:elasticloadbalancing:us-east-2:160698951904:loadbalancer/app/Lab4/a8fc9b82772bb8ed --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-2:160698951904:targetgroup/Lab4/d4df91995a82cad3
